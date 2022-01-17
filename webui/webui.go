@@ -3,9 +3,9 @@ package webui
 import (
 	"errors"
 	"fmt"
-	"github.com/s-rah/onionscan/config"
-	"github.com/s-rah/onionscan/crawldb"
-	"github.com/s-rah/onionscan/utils"
+	"github.com/CypherpunkSamurai/onionscan/config"
+	"github.com/CypherpunkSamurai/onionscan/crawldb"
+	"github.com/CypherpunkSamurai/onionscan/utils"
 	"html/template"
 	"log"
 	"net/http"
