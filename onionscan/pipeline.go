@@ -1,11 +1,14 @@
 package onionscan
 
 import (
-	"errors"
 	"fmt"
+	"log"
+	"os"
+	"strings"
+	"sync"
+
 	"github.com/CypherpunkSamurai/onionscan/report"
 	"github.com/CypherpunkSamurai/onionscan/utils"
-	"strings"
 )
 
 // Pipeline is a construct for managing a set of crawls, analysis and output sinks
@@ -42,19 +45,34 @@ func (p *Pipeline) Execute(hiddenService string) {
 	}
 
 	r := report.NewOnionScanReport(hiddenService)
-	if utils.IsOnion(hiddenService) {
 
-		for _, step := range p.Steps {
-			err := step.Do(r)
-			if err != nil {
-				break
+	var wg sync.WaitGroup
+
+	defer close(p.Reports)
+	wg.Add(1)
+
+	go func() {
+		defer wg.Done()
+		if utils.IsOnion(hiddenService) {
+
+			for _, step := range p.Steps {
+				err := step.Do(r)
+				if err != nil {
+					break
+				}
 			}
+
+			// Output Report
+			p.Reports <- r
+
+		} else {
+			err := fmt.Sprintf("Unknown hidden service type: %v", hiddenService)
+			log.Fatal(err)
 		}
 
-		// Output Report
-		p.Reports <- r
-	} else {
-		r.Error = errors.New(fmt.Sprintf("Unknown hidden service type: %v", hiddenService))
-		p.Reports <- r
-	}
+	}()
+
+	wg.Wait()
+	defer os.Exit(0)
+
 }
