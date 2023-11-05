@@ -442,16 +442,16 @@ func (wui *WebUI) Listen(osc *config.OnionScanConfig, port int) {
 	http.HandleFunc("/saved", wui.SavedSearches)
 	http.HandleFunc("/delete-tag", wui.DeleteTag)
 
-	fs := http.FileServer(http.Dir("./templates/style"))
+	fs := http.FileServer(http.Dir("../templates/style"))
 	http.Handle("/style/", http.StripPrefix("/style/", fs))
 
-	fs = http.FileServer(http.Dir("./templates/scripts"))
+	fs = http.FileServer(http.Dir("../templates/scripts"))
 	http.Handle("/scripts/", http.StripPrefix("/scripts/", fs))
 
-	fs = http.FileServer(http.Dir("./templates/images"))
+	fs = http.FileServer(http.Dir("../templates/images"))
 	http.Handle("/images/", http.StripPrefix("/images/", fs))
 
-	fs = http.FileServer(http.Dir("./templates/fonts"))
+	fs = http.FileServer(http.Dir("../templates/fonts"))
 	http.Handle("/fonts/", http.StripPrefix("/fonts/", fs))
 
 	portstr := strconv.Itoa(port)
