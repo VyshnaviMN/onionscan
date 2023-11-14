@@ -38,7 +38,8 @@ func main() {
 	batch := flag.Int("batch", 10, "number of onions to scan concurrently")
 	dbdir := flag.String("dbdir", "./onionscandb", "The directory where the crawl database will be stored")
 	crawlconfigdir := flag.String("crawlconfigdir", "", "A directory where crawl configurations are stored")
-	scans := flag.String("scans", "", "a comma-separated list of scans to run e.g. web,tls,... (default: run all)")
+	scans := flag.String("scans", "", "a comma-separated list of scans to run e.g. web,tls,other(pop3)... (default: run all)")
+	portRange := flag.String("portRange","","give the range of ports you want to scan e.g. 1-65535 (deafault: ports 1-100)")
 	webport := flag.Int("webport", 8080, "if given, onionscan will expose a webserver on localhost:[port] to enabled searching of the database")
 	mode := flag.String("mode", "scan", "one of scan or analysis. In analysis mode, webport must be set.")
 	cookiestring := flag.String("cookie", "", "if provided, onionscan will use this cookie")
@@ -59,7 +60,14 @@ func main() {
 		scanslist = onionScan.GetAllActions()
 	}
 
-	onionScan.Config = config.Configure(*torProxyAddress, *directoryDepth, *fingerprint, *timeout, *dbdir, scanslist, *crawlconfigdir, *cookiestring, *verbose)
+	var portRangeList []string
+	if *portRange != "" {
+		portRangeList = strings.Split(*portRange, "-")
+	} else {
+		portRangeList = onionScan.GetDefaultPortRange()
+	}
+
+	onionScan.Config = config.Configure(*torProxyAddress, *directoryDepth, *fingerprint, *timeout, *dbdir, scanslist, portRangeList, *crawlconfigdir, *cookiestring, *verbose)
 
 	if *mode == "scan" {
 		if !*simpleReport && !*jsonReport && !*jsonSimpleReport {

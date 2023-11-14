@@ -39,6 +39,7 @@ type OnionScanReport struct {
 	VNCDetected      bool `json:"vncDetected"`
 	XMPPDetected     bool `json:"xmppDetected"`
 	SkynetDetected   bool `json:"skynetDetected"`
+	OtherDetected    bool `json:"otherDetected"`
 
 	// Site Specific
 	Crawls map[string]int `json:"crawls"`
@@ -63,6 +64,9 @@ type OnionScanReport struct {
 	// SMTP
 	SMTPFingerprint string `json:"smtpFingerprint"`
 	SMTPBanner      string `json:"smtpBanner"`
+
+	// Other Open Ports
+	OtherOpenPorts string `json:"otherOpenPorts"`
 
 	// Meta Info
 	NextAction string `json:"lastAction"`

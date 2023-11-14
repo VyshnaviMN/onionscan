@@ -30,6 +30,14 @@ func (os *OnionScan) GetAllActions() []string {
 		"bitcoin_test",
 		"litecoin",
 		"dogecoin",
+		"other",
+	}
+}
+
+func (os *OnionScan) GetDefaultPortRange() []string {
+	return []string{
+		"1",
+		"100",
 	}
 }
 
@@ -66,6 +74,9 @@ func (os *OnionScan) PerformNextAction(report *report.OnionScanReport, nextActio
 	case "xmpp":
 		xmppps := new(protocol.XMPPProtocolScanner)
 		xmppps.ScanProtocol(report.HiddenService, os.Config, report)
+	case "other":
+		other := new(protocol.OtherProtocolScanner)
+		other.ScanProtocol(report.HiddenService, os.Config, report)
 	case "bitcoin", "bitcoin_test", "litecoin", "litecoin_test", "dogecoin", "dogecoin_test":
 		bps := protocol.NewBitcoinProtocolScanner(nextAction)
 		bps.ScanProtocol(report.HiddenService, os.Config, report)
@@ -92,6 +103,10 @@ func (os *OnionScan) Do(osreport *report.OnionScanReport) error {
 			break
 		}
 	}
+
+	otherPorts := new(protocol.OtherPortsScanner)
+	otherPorts.ScanProtocol(osreport.HiddenService, os.Config, osreport)
+
 	if len(osreport.PerformedScans) != 0 {
 		osreport.NextAction = osreport.PerformedScans[len(osreport.PerformedScans)-1]
 	} else {
