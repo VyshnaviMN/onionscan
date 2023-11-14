@@ -3,7 +3,7 @@ package config
 import (
 	"bufio"
 	"fmt"
-	"github.com/CypherpunkSamurai/onionscan/crawldb"
+	"github.com/VyshnaviMN/onionscan/crawldb"
 	"log"
 	"net/http"
 	"os"

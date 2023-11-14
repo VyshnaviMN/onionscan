@@ -2,9 +2,9 @@ package onionscan
 
 import (
 	"fmt"
-	"github.com/CypherpunkSamurai/onionscan/config"
-	"github.com/CypherpunkSamurai/onionscan/protocol"
-	"github.com/CypherpunkSamurai/onionscan/report"
+	"github.com/VyshnaviMN/onionscan/config"
+	"github.com/VyshnaviMN/onionscan/protocol"
+	"github.com/VyshnaviMN/onionscan/report"
 	"time"
 )
 

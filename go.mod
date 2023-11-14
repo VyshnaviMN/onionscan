@@ -1,4 +1,4 @@
-module github.com/CypherpunkSamurai/onionscan
+module github.com/VyshnaviMN/onionscan
 
 go 1.17
 

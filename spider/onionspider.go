@@ -3,9 +3,9 @@ package spider
 import (
 	"crypto/tls"
 	"fmt"
-	"github.com/CypherpunkSamurai/onionscan/config"
-	"github.com/CypherpunkSamurai/onionscan/model"
-	"github.com/CypherpunkSamurai/onionscan/report"
+	"github.com/VyshnaviMN/onionscan/config"
+	"github.com/VyshnaviMN/onionscan/model"
+	"github.com/VyshnaviMN/onionscan/report"
 	"golang.org/x/net/proxy"
 	"net/http"
 	"net/http/cookiejar"

@@ -8,9 +8,9 @@
 
 # What should I work on?
 
-Check out the [Help Wanted](https://github.com/CypherpunkSamurai/onionscan/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) for projects that will likely be the easiest for newcomers
+Check out the [Help Wanted](https://github.com/VyshnaviMN/onionscan/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) for projects that will likely be the easiest for newcomers
 
-Issues marked [idea/ needs design](https://github.com/CypherpunkSamurai/onionscan/issues?q=is%3Aissue+is%3Aopen+label%3A%22idea+%2F+needs+design%22) should begin with a document linked from the issue to allow input as these are likely to have the biggest impact on OnionScan's overall architecture.
+Issues marked [idea/ needs design](https://github.com/VyshnaviMN/onionscan/issues?q=is%3Aissue+is%3Aopen+label%3A%22idea+%2F+needs+design%22) should begin with a document linked from the issue to allow input as these are likely to have the biggest impact on OnionScan's overall architecture.
 
 If in doubt, you can always contact @s-rah
 

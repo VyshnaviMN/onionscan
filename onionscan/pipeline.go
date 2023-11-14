@@ -7,8 +7,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/CypherpunkSamurai/onionscan/report"
-	"github.com/CypherpunkSamurai/onionscan/utils"
+	"github.com/VyshnaviMN/onionscan/report"
+	"github.com/VyshnaviMN/onionscan/utils"
 )
 
 // Pipeline is a construct for managing a set of crawls, analysis and output sinks

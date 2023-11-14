@@ -1,8 +1,8 @@
 package protocol
 
 import (
-	"github.com/CypherpunkSamurai/onionscan/config"
-	"github.com/CypherpunkSamurai/onionscan/report"
+	"github.com/VyshnaviMN/onionscan/config"
+	"github.com/VyshnaviMN/onionscan/report"
 )
 
 type Scanner interface {
