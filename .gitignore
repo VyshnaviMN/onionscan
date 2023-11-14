@@ -43,5 +43,7 @@ onionscan.exe
 # Ignore all .txt files
 *.txt
 
+*.sh
+
 # Ignore the onionscan-src directory
 onionscan-src.exe
