@@ -39,3 +39,9 @@ Desktop.ini
 onionscandb
 service-config
 onionscan.exe
+
+# Ignore all .txt files
+*.txt
+
+# Ignore the onionscan-src directory
+onionscan-src.exe
