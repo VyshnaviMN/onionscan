@@ -46,4 +46,4 @@ onionscan.exe
 *.sh
 
 # Ignore the onionscan-src directory
-onionscan-src.exe
+onionscan-src
