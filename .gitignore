@@ -37,7 +37,7 @@ Desktop.ini
 # OnionScan
 onionscandb
 service-config
-scan-infro
+scan-infra
 onionscan.exe
 
 # Ignore all .txt files
