@@ -5,6 +5,9 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"os"
+	"encoding/csv"
+	"time"
 	"github.com/VyshnaviMN/onionscan/config"
 	"github.com/VyshnaviMN/onionscan/report"
 	"github.com/VyshnaviMN/onionscan/utils"
@@ -14,8 +17,23 @@ import (
 type OtherPortsScanner struct {
 }
 
+func appendToCSV(outputFile *os.File, onion, portRange string, result string) error {
+	writer := csv.NewWriter(outputFile)
+	defer writer.Flush()
+
+	// Write CSV row
+	row := []string{
+		time.Now().Format("2006-01-02 15:04:05"), // DateTime
+		onion,                                    // OnionAddress
+		result,                                   // Open Ports or Error
+		portRange,								  // Port-Range scanned
+	}
+	return writer.Write(row)
+}
+
 func (sps *OtherPortsScanner) ScanProtocol(hiddenService string, osc *config.OnionScanConfig, report *report.OnionScanReport) {
 	var openPorts []string
+	portRange := strings.Join(osc.PortRange, "-")
 	startPort, _ := strconv.Atoi(osc.PortRange[0])
 	endPort, _ := strconv.Atoi(osc.PortRange[1])
 
@@ -23,8 +41,16 @@ func (sps *OtherPortsScanner) ScanProtocol(hiddenService string, osc *config.Oni
 
 	var wg sync.WaitGroup
 
-	maxConcurrent := 5
+	maxConcurrent := 10
 	semaphore := make(chan struct{}, maxConcurrent)
+
+	outputCSV := "../scan-infra/scan_results.csv"
+	outputFile, err := os.OpenFile(outputCSV, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		fmt.Printf("Error opening/creating output CSV file %s: %v\n", outputCSV, err)
+		return
+	}
+	defer outputFile.Close()
 
 	for port := startPort; port <= endPort; port++ {
 
@@ -48,10 +74,18 @@ func (sps *OtherPortsScanner) ScanProtocol(hiddenService string, osc *config.Oni
 	wg.Wait()
 
 	if len(openPorts) > 0 {
-		osc.LogInfo(fmt.Sprintf("Detected Open Ports: %s", strings.Join(openPorts, ", ")))
-		report.OtherOpenPorts = fmt.Sprintf("Open Ports: %s", strings.Join(openPorts, ", "))
+		result := strings.Join(openPorts, ", ")
+		osc.LogInfo(fmt.Sprintf("Detected Open Ports: %s", result))
+		report.OtherOpenPorts = result
+		if err := appendToCSV(outputFile, hiddenService, portRange, result); err != nil {
+			fmt.Printf("Error appending to CSV: %v\n", err)
+		}
 	} else {
+		result := ""
 		osc.LogInfo(fmt.Sprintf("No Open Ports Detected"))
 		report.OtherOpenPorts = fmt.Sprintf("No Open Ports Detected")
+		if err := appendToCSV(outputFile, hiddenService, portRange, result); err != nil {
+			fmt.Printf("Error appending to CSV: %v\n", err)
+		}
 	}
 }

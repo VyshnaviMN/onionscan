@@ -6,7 +6,6 @@
 *.swp
 *.lock
 
-
 # Eclipse
 .classpath
 .project
@@ -38,6 +37,7 @@ Desktop.ini
 # OnionScan
 onionscandb
 service-config
+scan-infro
 onionscan.exe
 
 # Ignore all .txt files
