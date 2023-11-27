@@ -40,11 +40,12 @@ func (sps *OtherPortsScanner) ScanProtocol(hiddenService string, osc *config.Oni
 	bar := progressbar.Default(int64(endPort - startPort + 1))
 
 	var wg sync.WaitGroup
+	var openPortsMutex sync.Mutex
 
-	maxConcurrent := 10
+	maxConcurrent := 12
 	semaphore := make(chan struct{}, maxConcurrent)
 
-	outputCSV := "../scan-infra/scan_results.csv"
+	outputCSV := "../scan_results.csv"
 	outputFile, err := os.OpenFile(outputCSV, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		fmt.Printf("Error opening/creating output CSV file %s: %v\n", outputCSV, err)
@@ -65,7 +66,9 @@ func (sps *OtherPortsScanner) ScanProtocol(hiddenService string, osc *config.Oni
 				conn.Close()
 			}
 			if err == nil {
+				openPortsMutex.Lock()
 				openPorts = append(openPorts, strconv.Itoa(port))
+				openPortsMutex.Unlock()
 			}
 		}(port)
 		bar.Add(1)
