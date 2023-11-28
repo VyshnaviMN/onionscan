@@ -42,10 +42,10 @@ func (sps *OtherPortsScanner) ScanProtocol(hiddenService string, osc *config.Oni
 	var wg sync.WaitGroup
 	var openPortsMutex sync.Mutex
 
-	maxConcurrent := 12
+	maxConcurrent := 15
 	semaphore := make(chan struct{}, maxConcurrent)
 
-	outputCSV := "../scan_results.csv"
+	outputCSV := "../scan_results/latest_scan.csv"
 	outputFile, err := os.OpenFile(outputCSV, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		fmt.Printf("Error opening/creating output CSV file %s: %v\n", outputCSV, err)
