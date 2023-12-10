@@ -5,38 +5,20 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"os"
 	"net"
-	"encoding/csv"
 	"time"
 	"github.com/VyshnaviMN/onionscan/config"
 	"github.com/VyshnaviMN/onionscan/report"
 	"github.com/VyshnaviMN/onionscan/utils"
+	"github.com/VyshnaviMN/onionscan/resultdb"
 	"github.com/schollz/progressbar/v3"
 )
 
 type OtherPortsScanner struct {
 }
 
-func appendToCSV(outputFile *os.File, id, onion, portRange string, result string, status string) error {
-	writer := csv.NewWriter(outputFile)
-	defer writer.Flush()
-
-	// Write CSV row
-	row := []string{
-		time.Now().Format("2006-01-02 15:04:05"), // DateTime
-		id,                                       // OnionID
-		onion,                                    // OnionAddress
-		result,                                   // Open Ports or Error
-		portRange,								  // Port-Range scanned
-		status,
-	}
-	return writer.Write(row)
-}
-
 const (
 	maxConcurrent = 15
-	outputCSV     = "../scan_results/latest_scan.csv"
 )
 
 func (sps *OtherPortsScanner) ScanProtocol(hiddenService string, osc *config.OnionScanConfig, report *report.OnionScanReport) {
@@ -53,12 +35,12 @@ func (sps *OtherPortsScanner) ScanProtocol(hiddenService string, osc *config.Oni
 
 	semaphore := make(chan struct{}, maxConcurrent)
 
-	outputFile, err := os.OpenFile(outputCSV, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	err := resultdb.InitDB()
 	if err != nil {
-		fmt.Printf("Error opening/creating output CSV file %s: %v\n", outputCSV, err)
+		fmt.Printf("Error initializing database: %v\n", err)
 		return
 	}
-	defer outputFile.Close()
+	defer resultdb.CloseDB()
 
 	conn, err := utils.GetNetworkConnection(hiddenService, 80, osc.TorProxyAddress, osc.Timeout)
 	if conn != nil {
@@ -98,19 +80,10 @@ func (sps *OtherPortsScanner) ScanProtocol(hiddenService string, osc *config.Oni
 		wg.Wait()
     }
 
-	if len(openPorts) > 0 {
-		result := strings.Join(openPorts, ", ")
-		osc.LogInfo(fmt.Sprintf("Detected Open Ports: %s", result))
-		report.OtherOpenPorts = result
-		if err := appendToCSV(outputFile, osc.OnionID, hiddenService, portRange, result, status); err != nil {
-			fmt.Printf("Error appending to CSV: %v\n", err)
-		}
-	} else {
-		result := ""
-		osc.LogInfo(fmt.Sprintf("No Open Ports Detected"))
-		report.OtherOpenPorts = fmt.Sprintf("No Open Ports Detected")
-		if err := appendToCSV(outputFile, osc.OnionID, hiddenService, portRange, result, status); err != nil {
-			fmt.Printf("Error appending to CSV: %v\n", err)
-		}
-	}
+	result := strings.Join(openPorts, ", ")
+	report.OtherOpenPorts = result
+	osc.LogInfo(fmt.Sprintf("Open Ports: %s", result))
+	if err := resultdb.InsertScanResult(osc.OnionID, hiddenService, time.Now(), result, portRange, time.Now(), status); err != nil {
+        fmt.Printf("Error inserting/updating to database: %v\n", err)
+    }
 }
