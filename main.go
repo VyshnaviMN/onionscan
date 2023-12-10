@@ -43,6 +43,7 @@ func main() {
 	webport := flag.Int("webport", 8080, "if given, onionscan will expose a webserver on localhost:[port] to enabled searching of the database")
 	mode := flag.String("mode", "scan", "one of scan or analysis. In analysis mode, webport must be set.")
 	cookiestring := flag.String("cookie", "", "if provided, onionscan will use this cookie")
+	onionId := flag.String("onionId", "", "give a unique id associated with the onion")
 
 	flag.Parse()
 
@@ -67,7 +68,7 @@ func main() {
 		portRangeList = onionScan.GetDefaultPortRange()
 	}
 
-	onionScan.Config = config.Configure(*torProxyAddress, *directoryDepth, *fingerprint, *timeout, *dbdir, scanslist, portRangeList, *crawlconfigdir, *cookiestring, *verbose)
+	onionScan.Config = config.Configure(*torProxyAddress, *directoryDepth, *fingerprint, *timeout, *dbdir, scanslist, portRangeList, *crawlconfigdir, *cookiestring, *verbose, *onionId)
 
 	if *mode == "scan" {
 		if !*simpleReport && !*jsonReport && !*jsonSimpleReport {
