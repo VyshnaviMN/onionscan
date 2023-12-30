@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	username = "vyshnavi"
-	password = "JLTQa4Ro7WKz"
-	host     = "ganymede"
-	port     = "33067"
-	dbname   = "vyshnavi"
+	username = ""
+	password = ""
+	host     = ""
+	port     = ""
+	dbname   = ""
 )
 
 var DB *sql.DB
