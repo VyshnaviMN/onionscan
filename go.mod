@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/schollz/progressbar/v3 v3.14.1 // indirect

@@ -39,6 +39,7 @@ onionscandb
 service-config
 scan-infra
 onionscan.exe
+database.go
 
 # Ignore all .txt files
 *.txt
@@ -47,3 +48,4 @@ onionscan.exe
 
 # Ignore the onionscan-src directory
 onionscan-src
+resultdb/database.go

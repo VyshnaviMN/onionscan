@@ -5,12 +5,12 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"net"
 	"time"
+
 	"github.com/VyshnaviMN/onionscan/config"
 	"github.com/VyshnaviMN/onionscan/report"
-	"github.com/VyshnaviMN/onionscan/utils"
 	"github.com/VyshnaviMN/onionscan/resultdb"
+	"github.com/VyshnaviMN/onionscan/utils"
 	"github.com/schollz/progressbar/v3"
 )
 
@@ -18,12 +18,13 @@ type OtherPortsScanner struct {
 }
 
 const (
-	maxConcurrent = 15
+	maxConcurrent = 200
 )
 
 func (sps *OtherPortsScanner) ScanProtocol(hiddenService string, osc *config.OnionScanConfig, report *report.OnionScanReport) {
-	var openPorts []string
-	status := "Scanned"
+	openPorts := ""
+	status := ""
+	checkPort := 80
 	portRange := strings.Join(osc.PortRange, "-")
 	startPort, _ := strconv.Atoi(osc.PortRange[0])
 	endPort, _ := strconv.Atoi(osc.PortRange[1])
@@ -32,6 +33,7 @@ func (sps *OtherPortsScanner) ScanProtocol(hiddenService string, osc *config.Oni
 
 	var wg sync.WaitGroup
 	var openPortsMutex sync.Mutex
+	var openPortsBuilder strings.Builder
 
 	semaphore := make(chan struct{}, maxConcurrent)
 
@@ -42,23 +44,37 @@ func (sps *OtherPortsScanner) ScanProtocol(hiddenService string, osc *config.Oni
 	}
 	defer resultdb.CloseDB()
 
-	conn, err := utils.GetNetworkConnection(hiddenService, 80, osc.TorProxyAddress, osc.Timeout)
+	if strings.Contains(osc.OnionURL, "https"){
+		checkPort = 443
+	} 
+
+	conn, err := utils.GetNetworkConnection(hiddenService, checkPort, osc.TorProxyAddress, osc.Timeout)
+	
 	if conn != nil {
 		conn.Close()
 	}
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "connection refused") {
 		fmt.Printf("Error: %v\n", err)
 		if strings.Contains(err.Error(), "host unreachable") {
 			fmt.Println("Host is unreachable.")
-			status = "Offline"
-		}
-		if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+			status = "offline"
+		} else if strings.Contains(err.Error(), "server failure") || strings.Contains(err.Error(), "TTL"){
 			fmt.Println("Timeout.")
-			status = "Timeout"
+			status = "temporarily_down"
+		} else {
+			s := strings.Fields(err.Error())
+			status = strings.Join(s[len(s)-2:], "_")
 		}
 	} else {
-		for port := startPort; port <= endPort; port++ {
+		if strings.Contains(err.Error(), "connection refused"){
+			fmt.Printf("Error: %v\n", err)
+			status = "connection_refused_but_scanned"
+		} else {
+			status = "scanned"
+		}
 
+		for port := startPort; port <= endPort; port++ {
+			
 			wg.Add(1)
 			semaphore <- struct{}{}
 
@@ -70,9 +86,8 @@ func (sps *OtherPortsScanner) ScanProtocol(hiddenService string, osc *config.Oni
 					conn.Close()
 				}
 				if err == nil {
-					openPortsMutex.Lock()
-					openPorts = append(openPorts, strconv.Itoa(port))
-					openPortsMutex.Unlock()
+					openPortsBuilder.WriteString(strconv.Itoa(port))
+					openPortsBuilder.WriteString(", ")
 				}
 				bar.Add(1)
 			}(port)
@@ -80,10 +95,13 @@ func (sps *OtherPortsScanner) ScanProtocol(hiddenService string, osc *config.Oni
 		wg.Wait()
     }
 
-	result := strings.Join(openPorts, ", ")
-	report.OtherOpenPorts = result
-	osc.LogInfo(fmt.Sprintf("Open Ports: %s", result))
-	if err := resultdb.InsertScanResult(osc.OnionID, hiddenService, time.Now(), result, portRange, time.Now(), status); err != nil {
+	openPortsMutex.Lock()
+	defer openPortsMutex.Unlock()
+	openPorts = strings.TrimSuffix(openPortsBuilder.String(), ", ")
+
+	report.OtherOpenPorts = openPorts
+	osc.LogInfo(fmt.Sprintf("Open Ports: %s", openPorts))
+	if err := resultdb.InsertOrUpdate(osc.OnionID, osc.OnionURL, time.Now(), openPorts, portRange, time.Now(), status); err != nil {
         fmt.Printf("Error inserting/updating to database: %v\n", err)
     }
 }

@@ -3,6 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"os"
+	"strings"
+
 	"github.com/VyshnaviMN/onionscan/config"
 	"github.com/VyshnaviMN/onionscan/deanonymization"
 	"github.com/VyshnaviMN/onionscan/onionscan"
@@ -11,10 +16,6 @@ import (
 	"github.com/VyshnaviMN/onionscan/utils"
 	"github.com/VyshnaviMN/onionscan/webui"
 	"golang.org/x/crypto/ssh/terminal"
-	"io/ioutil"
-	"log"
-	"os"
-	"strings"
 )
 
 func main() {
@@ -68,7 +69,7 @@ func main() {
 		portRangeList = onionScan.GetDefaultPortRange()
 	}
 
-	onionScan.Config = config.Configure(*torProxyAddress, *directoryDepth, *fingerprint, *timeout, *dbdir, scanslist, portRangeList, *crawlconfigdir, *cookiestring, *verbose, *onionId)
+	onionScan.Config = config.Configure(*torProxyAddress, *directoryDepth, *fingerprint, *timeout, *dbdir, scanslist, portRangeList, *crawlconfigdir, *cookiestring, *verbose, *onionId, flag.Args()[0])
 
 	if *mode == "scan" {
 		if !*simpleReport && !*jsonReport && !*jsonSimpleReport {
