@@ -66,7 +66,7 @@ func (sps *OtherPortsScanner) ScanProtocol(hiddenService string, osc *config.Oni
 			status = strings.Join(s[len(s)-2:], "_")
 		}
 	} else {
-		if strings.Contains(err.Error(), "connection refused"){
+		if err != nil && strings.Contains(err.Error(), "connection refused"){
 			fmt.Printf("Error: %v\n", err)
 			status = "connection_refused_but_scanned"
 		} else {
