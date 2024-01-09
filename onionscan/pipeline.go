@@ -35,7 +35,7 @@ func (p *Pipeline) AddStep(step PipelineStep) {
 
 // Execute takes a hidden service address and puts it through the configured
 // pipeline.
-func (p *Pipeline) Execute(hiddenService string) {
+func (p *Pipeline) Execute(hiddenService string, hiddenServiceID string) {
 
 	// Remove Extra Prefix
 	hiddenService = utils.WithoutProtocol(hiddenService)
@@ -44,7 +44,7 @@ func (p *Pipeline) Execute(hiddenService string) {
 		hiddenService = hiddenService[0 : len(hiddenService)-1]
 	}
 
-	r := report.NewOnionScanReport(hiddenService)
+	r := report.NewOnionScanReport(hiddenService, hiddenServiceID)
 
 	var wg sync.WaitGroup
 

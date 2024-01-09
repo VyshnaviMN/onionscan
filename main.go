@@ -44,11 +44,10 @@ func main() {
 	webport := flag.Int("webport", 8080, "if given, onionscan will expose a webserver on localhost:[port] to enabled searching of the database")
 	mode := flag.String("mode", "scan", "one of scan or analysis. In analysis mode, webport must be set.")
 	cookiestring := flag.String("cookie", "", "if provided, onionscan will use this cookie")
-	onionId := flag.String("onionId", "", "give a unique id associated with the onion")
 
 	flag.Parse()
 
-	if (len(flag.Args()) != 1 && *list == "") && *mode != "analysis" {
+	if (len(flag.Args()) != 2 && *list == "") && *mode != "analysis" {
 		flag.Usage()
 		os.Exit(1)
 	}
@@ -69,7 +68,7 @@ func main() {
 		portRangeList = onionScan.GetDefaultPortRange()
 	}
 
-	onionScan.Config = config.Configure(*torProxyAddress, *directoryDepth, *fingerprint, *timeout, *dbdir, scanslist, portRangeList, *crawlconfigdir, *cookiestring, *verbose, *onionId, flag.Args()[0])
+	onionScan.Config = config.Configure(*torProxyAddress, *directoryDepth, *fingerprint, *timeout, *dbdir, scanslist, portRangeList, *crawlconfigdir, *cookiestring, *verbose)
 
 	if *mode == "scan" {
 		if !*simpleReport && !*jsonReport && !*jsonSimpleReport {
@@ -81,10 +80,10 @@ func main() {
 			log.Fatalf("%s, is the --torProxyAddress setting correct?", utils.ProxyStatusMessage(proxyStatus))
 		}
 
-		onionsToScan := []string{}
+		onionsToScan := [][]string{}
 		if *list == "" {
-			onionsToScan = append(onionsToScan, flag.Args()[0])
-			log.Printf("Starting Scan of %s\n", flag.Args()[0])
+			onionsToScan = append(onionsToScan, [flag.Args()[0], flag.Args()[1]])
+			log.Printf("Starting Scan of %s\n", [flag.Args()[0], flag.Args()[1]])
 		} else {
 			content, err := ioutil.ReadFile(*list)
 			if err != nil {
@@ -92,7 +91,8 @@ func main() {
 			}
 			onions := strings.Split(string(content), "\n")
 			for _, onion := range onions[0 : len(onions)-1] {
-				onionsToScan = append(onionsToScan, onion)
+				onion1 := strings.Split(onion, ",")
+				onionsToScan = append(onionsToScan, [onion1[0],onion1[1]])
 			}
 			log.Printf("Starting Scan of %d onion services\n", len(onionsToScan))
 		}
@@ -144,34 +144,38 @@ func doScanMode(onionScan *onionscan.OnionScan, onionsToScan []string, batch int
 		pipeline.AddStep(step)
 	}
 
-	count := 0
-	if batch > len(onionsToScan) {
-		batch = len(onionsToScan)
-	}
+    workerPool := make(chan struct{}, batch)
 
-	// Run an initial batch of 100 requests (or less...)
-	for count < batch {
-		go pipeline.Execute(onionsToScan[count])
-		count++
-	}
+    // Function to execute the pipeline for a given onion
+    executePipeline := func(onion string, onionId string) {
+        defer func() {
+            // Release the worker back to the pool when done
+            <-workerPool
+        }()
 
-	received := 0
-	for received < len(onionsToScan) {
-		// TODO: This will later be used to provide stats to the webui
-		osreport := <-reports
+        // Execute the pipeline for the current onion
+        go pipeline.Execute(onion, onionId)
+    }
 
-		if osreport.Error != nil {
-			onionScan.Config.LogError(osreport.Error)
-		}
+    // Start worker pool
+    for i := 0; i < batch; i++ {
+        workerPool <- struct{}{}
+    }
 
-		// After the initial batch, it's one in one out to prevent proxy overload.
-		if count < len(onionsToScan) {
-			// TODO: Make onionsToScan a priority queue and take the next
-			// most important one - this will allow us to submit new jobs from
-			// the web ui (that should take precedence over the background jobs)
-			go pipeline.Execute(onionsToScan[count])
-			count++
-		}
-		received++
-	}
+    // Process each onion with the worker pool
+    for _, onion := range onionsToScan {
+        <-workerPool // Wait for a worker to be available
+        go executePipeline(onion[1], onion[0])
+    }
+
+    // Close the reports channel after processing all onions
+    go func() {
+        // Wait for all workers to finish
+        for i := 0; i < batch; i++ {
+            <-workerPool
+        }
+
+        // Close the reports channel to signal the end of processing
+        close(reports)
+    }()
 }
