@@ -44,9 +44,9 @@ func (sps *OtherPortsScanner) ScanProtocol(hiddenService string, osc *config.Oni
 	}
 	defer resultdb.CloseDB()
 
-	if strings.Contains(osc.OnionURL, "https"){
-		checkPort = 443
-	} 
+	// if strings.Contains(osc.OnionURL, "https"){
+	// 	checkPort = 443
+	// } 
 
 	conn, err := utils.GetNetworkConnection(hiddenService, checkPort, osc.TorProxyAddress, osc.Timeout)
 	
@@ -101,7 +101,7 @@ func (sps *OtherPortsScanner) ScanProtocol(hiddenService string, osc *config.Oni
 
 	report.OtherOpenPorts = openPorts
 	osc.LogInfo(fmt.Sprintf("Open Ports: %s", openPorts))
-	if err := resultdb.InsertOrUpdate(report.hiddenServiceID, hiddenService, time.Now(), openPorts, portRange, time.Now(), status); err != nil {
+	if err := resultdb.InsertOrUpdate(report.HiddenServiceID, hiddenService, time.Now(), openPorts, portRange, time.Now(), status); err != nil {
         fmt.Printf("Error inserting/updating to database: %v\n", err)
     }
 }

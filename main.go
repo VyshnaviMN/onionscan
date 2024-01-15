@@ -82,8 +82,9 @@ func main() {
 
 		onionsToScan := [][]string{}
 		if *list == "" {
-			onionsToScan = append(onionsToScan, [flag.Args()[0], flag.Args()[1]])
-			log.Printf("Starting Scan of %s\n", [flag.Args()[0], flag.Args()[1]])
+			onion := []string{flag.Args()[0], flag.Args()[1]}
+			onionsToScan = append(onionsToScan, onion)
+			log.Printf("Starting Scan of %s\n", onion)
 		} else {
 			content, err := ioutil.ReadFile(*list)
 			if err != nil {
@@ -91,8 +92,8 @@ func main() {
 			}
 			onions := strings.Split(string(content), "\n")
 			for _, onion := range onions[0 : len(onions)-1] {
-				onion1 := strings.Split(onion, ",")
-				onionsToScan = append(onionsToScan, [onion1[0],onion1[1]])
+				onionPair := strings.Split(onion, ",")
+				onionsToScan = append(onionsToScan, onionPair)
 			}
 			log.Printf("Starting Scan of %d onion services\n", len(onionsToScan))
 		}
@@ -115,7 +116,7 @@ func main() {
 // do_scan_mode prepares a pipeline of processes this run is managing and then
 // periodically sends new onions through the pipeline - no more than `batch`
 // onions are processed simultaneously.
-func doScanMode(onionScan *onionscan.OnionScan, onionsToScan []string, batch int, reportFile string, simpleReport bool, jsonReport bool, jsonSimpleReport bool) {
+func doScanMode(onionScan *onionscan.OnionScan, onionsToScan [][]string, batch int, reportFile string, simpleReport bool, jsonReport bool, jsonSimpleReport bool) {
 	reports := make(chan *report.OnionScanReport)
 
 	pipeline := new(onionscan.Pipeline)
