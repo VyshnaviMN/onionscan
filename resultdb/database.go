@@ -8,11 +8,11 @@ import (
 )
 
 const (
-	username = "root"
-	password = "noobie"
-	host     = "localhost"
-	port     = "3306"
-	dbname   = "onionscan"
+	username = ""
+	password = ""
+	host     = ""
+	port     = ""
+	dbname   = ""
 )
 
 var DB *sql.DB
