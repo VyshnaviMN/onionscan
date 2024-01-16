@@ -81,12 +81,11 @@ func InsertOrUpdate(id string, onion string, scannedAt time.Time, result string,
 		if err != nil {
 			return fmt.Errorf("error updating lastScannedAt in scan_results: %v", err)
 		}
-	}
-
-	// Insert into scan_history
-	err = InsertScanHistory(id, lastScannedAt, result, portRange, status)
-	if err != nil {
-		return fmt.Errorf("error inserting into scan_history: %v", err)
+		// Insert into scan_history
+		err = InsertScanHistory(id, lastScannedAt, result, portRange, status)
+		if err != nil {
+			return fmt.Errorf("error inserting into scan_history: %v", err)
+		}
 	}
 
 	return nil
