@@ -18,7 +18,7 @@ type OtherPortsScanner struct {
 }
 
 const (
-	maxConcurrent = 200
+	maxConcurrent = 201
 )
 
 func (sps *OtherPortsScanner) ScanProtocol(hiddenService string, osc *config.OnionScanConfig, report *report.OnionScanReport) {
