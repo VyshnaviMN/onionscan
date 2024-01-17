@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -14,12 +15,13 @@ const (
 	port     = ""
 	dbname   = ""
 )
+
 func InitDB() (*sql.DB, error) {
 	dataSourceName := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", username, password, host, port, dbname)
 
 	db, err := sql.Open("mysql", dataSourceName)
 	if err != nil {
-		return fmt.Errorf("error opening MySQL connection: %v", err)
+		return db, fmt.Errorf("error opening MySQL connection: %v", err)
 	}
 
 	// Set the maximum number of open connections to the database
@@ -30,7 +32,7 @@ func InitDB() (*sql.DB, error) {
 
 func CloseDB(conn *sql.DB) {
 	if conn != nil {
-		db.Close()
+		conn.Close()
 	}
 }
 

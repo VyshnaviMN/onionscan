@@ -91,7 +91,7 @@ func main() {
 				log.Fatalf("Could not read onion file %s\n", *list)
 			}
 			onions := strings.Split(string(content), "\n")
-			for _, onion := range onions[0 : len(onions)-1] {
+			for _, onion := range onions {
 				onionPair := strings.Split(onion, ",")
 				onionsToScan = append(onionsToScan, onionPair)
 			}
