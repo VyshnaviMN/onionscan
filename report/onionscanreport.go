@@ -21,8 +21,10 @@ type BitcoinService struct {
 }
 
 type OnionScanReport struct {
-	HiddenService    string    `json:"hiddenService"`
-	HiddenServiceID  string    `json:"hiddenServiceID"`
+	// HiddenService    string    `json:"hiddenService"`
+	// HiddenServiceID  string    `json:"hiddenServiceID"`
+	OnionsToScan   map[string]string `json:"onionsToScan"`
+
 	DateScanned    time.Time `json:"dateScanned"`
 	Online         bool      `json:"online"`
 	PerformedScans []string  `json:"performedScans"`
@@ -91,10 +93,9 @@ func LoadReportFromFile(filename string) (OnionScanReport, error) {
 }
 
 // NewOnionScanReport creates a new OnionScan report for the given hidden service.
-func NewOnionScanReport(hiddenService string, hiddenServiceID string) *OnionScanReport {
+func NewOnionScanReport(onionsToScan map[string]string) *OnionScanReport {
 	report := new(OnionScanReport)
-	report.HiddenService = hiddenService
-	report.HiddenServiceID = hiddenServiceID
+	report.OnionsToScan = onionsToScan
 	report.DateScanned = time.Now()
 	report.Crawls = make(map[string]int)
 	report.PerformedScans = []string{}

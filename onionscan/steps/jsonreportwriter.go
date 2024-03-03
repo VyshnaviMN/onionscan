@@ -3,10 +3,11 @@ package steps
 import (
 	"bytes"
 	"fmt"
-	"github.com/VyshnaviMN/onionscan/report"
 	"log"
 	"os"
 	"time"
+
+	"github.com/VyshnaviMN/onionscan/report"
 )
 
 // JSONReportWriter is a sink Pipeline step used to output a JSON formated
@@ -33,7 +34,7 @@ func (jrw *JSONReportWriter) Do(r *report.OnionScanReport) error {
 	buffer.WriteString(fmt.Sprintf("%s\n", jsonOut))
 
 	if len(jrw.reportFile) > 0 {
-		reportFile := r.HiddenService + "." + jrw.reportFile
+		reportFile :=  "onionscan." + jrw.reportFile
 		f, err := os.Create(reportFile)
 
 		for err != nil {

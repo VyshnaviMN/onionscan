@@ -9,13 +9,10 @@ import (
 	"strings"
 
 	"github.com/VyshnaviMN/onionscan/config"
-	"github.com/VyshnaviMN/onionscan/deanonymization"
 	"github.com/VyshnaviMN/onionscan/onionscan"
-	"github.com/VyshnaviMN/onionscan/onionscan/steps"
 	"github.com/VyshnaviMN/onionscan/report"
 	"github.com/VyshnaviMN/onionscan/utils"
 	"github.com/VyshnaviMN/onionscan/webui"
-	"golang.org/x/crypto/ssh/terminal"
 )
 
 func main() {
@@ -26,7 +23,7 @@ func main() {
 		flag.PrintDefaults()
 	}
 
-	torProxyAddress := flag.String("torProxyAddress", "127.0.0.1:9050", "the address of the tor proxy to use")
+	torProxyAddress := flag.String("torProxyAddress", "127.0.0.1:16390", "the address of the tor proxy to use")
 	simpleReport := flag.Bool("simpleReport", true, "print out a simple report detailing what is wrong and how to fix it, true by default")
 	jsonSimpleReport := flag.Bool("jsonSimpleReport", false, "print out a simple report as json, false by default")
 	reportFile := flag.String("reportFile", "", "the file destination path for report file - if given, the prefix of the file will be the scanned onion service. If not given, the report will be written to stdout")
@@ -80,10 +77,12 @@ func main() {
 			log.Fatalf("%s, is the --torProxyAddress setting correct?", utils.ProxyStatusMessage(proxyStatus))
 		}
 
-		onionsToScan := [][]string{}
+		onionsToScan := make(map[string]string)
+
 		if *list == "" {
-			onion := []string{flag.Args()[0], flag.Args()[1]}
-			onionsToScan = append(onionsToScan, onion)
+			onionId := flag.Args()[0]
+			onion := flag.Args()[1]
+			onionsToScan[onion] = onionId
 			log.Printf("Starting Scan of %s\n", onion)
 		} else {
 			content, err := ioutil.ReadFile(*list)
@@ -93,7 +92,7 @@ func main() {
 			onions := strings.Split(string(content), "\n")
 			for _, onion := range onions {
 				onionPair := strings.Split(onion, ",")
-				onionsToScan = append(onionsToScan, onionPair)
+				onionsToScan[onionPair[1]] = onionPair[0]
 			}
 			log.Printf("Starting Scan of %d onion services\n", len(onionsToScan))
 		}
@@ -116,7 +115,7 @@ func main() {
 // do_scan_mode prepares a pipeline of processes this run is managing and then
 // periodically sends new onions through the pipeline - no more than `batch`
 // onions are processed simultaneously.
-func doScanMode(onionScan *onionscan.OnionScan, onionsToScan [][]string, batch int, reportFile string, simpleReport bool, jsonReport bool, jsonSimpleReport bool) {
+func doScanMode(onionScan *onionscan.OnionScan, onionsToScan map[string]string, batch int, reportFile string, simpleReport bool, jsonReport bool, jsonSimpleReport bool) {
 	reports := make(chan *report.OnionScanReport)
 
 	pipeline := new(onionscan.Pipeline)
@@ -125,58 +124,12 @@ func doScanMode(onionScan *onionscan.OnionScan, onionsToScan [][]string, batch i
 	// Add Crawlers
 	pipeline.AddStep(onionScan)
 
-	// Extract Identifiers
-	eis := new(deanonymization.ExtractIdentifierStep)
-	eis.Init(onionScan.Config)
-	pipeline.AddStep(eis)
+	go pipeline.Execute(onionsToScan)
+	osreport := <-reports
 
-	// Publish to a Sink
-	if jsonReport {
-		step := new(steps.JSONReportWriter)
-		step.Init(reportFile)
-		pipeline.AddStep(step)
-	} else {
-		termWidth, _, err := terminal.GetSize(int(os.Stdin.Fd()))
-		if err != nil {
-			termWidth = 80
-		}
-		step := new(steps.SimpleReportWriter)
-		step.Init(reportFile, jsonSimpleReport, termWidth-1)
-		pipeline.AddStep(step)
+	if osreport.Error != nil {
+		onionScan.Config.LogError(osreport.Error)
 	}
 
-    workerPool := make(chan struct{}, batch)
-
-    // Function to execute the pipeline for a given onion
-    executePipeline := func(onion string, onionId string) {
-        defer func() {
-            // Release the worker back to the pool when done
-            <-workerPool
-        }()
-
-        // Execute the pipeline for the current onion
-        go pipeline.Execute(onion, onionId)
-    }
-
-    // Start worker pool
-    for i := 0; i < batch; i++ {
-        workerPool <- struct{}{}
-    }
-
-    // Process each onion with the worker pool
-    for _, onion := range onionsToScan {
-        <-workerPool // Wait for a worker to be available
-        go executePipeline(onion[1], onion[0])
-    }
-
-    // Close the reports channel after processing all onions
-    go func() {
-        // Wait for all workers to finish
-        for i := 0; i < batch; i++ {
-            <-workerPool
-        }
-
-        // Close the reports channel to signal the end of processing
-        close(reports)
-    }()
+    close(reports)
 }

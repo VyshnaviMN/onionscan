@@ -3,6 +3,7 @@ package resultdb
 import (
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -74,10 +75,19 @@ func InsertOrUpdate(conn *sql.DB, id string, onion string, scannedAt time.Time, 
 			return fmt.Errorf("error inserting into scan_results: %v", err)
 		}
 	} else {
-		// Onion is already present, update lastScannedAt column
-		_, err := conn.Exec("UPDATE scan_results SET LastScannedAt = ? WHERE OnionID = ?", lastScannedAt, id)
+		// Get the current OpenPorts value from scan_results
+        var currentOpenPorts string
+        err = conn.QueryRow("SELECT OpenPorts FROM scan_results WHERE OnionID = ?", id).Scan(&currentOpenPorts)
+        if err != nil {
+            return fmt.Errorf("error getting current OpenPorts from scan_results: %v", err)
+        }
+
+		updatedOpenPorts := unionPorts(currentOpenPorts, result)
+
+		// Onion is already present, update lastScannedAt and OpenPorts column
+		_, err := conn.Exec("UPDATE scan_results SET LastScannedAt = ?, OpenPorts = ? WHERE OnionID = ?", lastScannedAt, updatedOpenPorts, id)
 		if err != nil {
-			return fmt.Errorf("error updating lastScannedAt in scan_results: %v", err)
+			return fmt.Errorf("error updating lastScannedAt and openPorts in scan_results: %v", err)
 		}
 
 		// Insert into scan_history
@@ -88,4 +98,37 @@ func InsertOrUpdate(conn *sql.DB, id string, onion string, scannedAt time.Time, 
 	}
 
 	return nil
+}
+
+func unionPorts(existingPorts, newPorts string) string {
+    // Convert existing and new port ranges to sets
+    existingSet := make(map[string]struct{})
+    newSet := make(map[string]struct{})
+
+	if existingPorts != "" {
+		// Add existing ports to set
+		for _, port := range strings.Split(existingPorts, ",") {
+			existingSet[port] = struct{}{}
+		}
+	}
+    
+	if newPorts != "" {
+		// Add new ports to set
+		for _, port := range strings.Split(newPorts, ",") {
+			newSet[port] = struct{}{}
+		}
+	}
+	
+    // Perform union operation
+    for port := range newSet {
+        existingSet[port] = struct{}{}
+    }
+
+    // Construct the result
+    var result []string
+    for port := range existingSet {
+        result = append(result, port)
+    }
+
+    return strings.Join(result, ",")
 }

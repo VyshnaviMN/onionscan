@@ -3,7 +3,7 @@ package report
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+
 	"github.com/VyshnaviMN/onionscan/utils"
 )
 
@@ -50,9 +50,9 @@ var risk_levels = map[string]string{
 // Format as human-readable text to be printed to console
 func (osr *SimpleReport) Format(width int) (string, error) {
 	buffer := bytes.NewBuffer(nil)
-	buffer.WriteString("--------------- OnionScan Report ---------------\n")
+	// buffer.WriteString("--------------- OnionScan Report ---------------\n")
 
-	buffer.WriteString(fmt.Sprintf("Generating Report for: %s\n\n", osr.HiddenService))
+	// buffer.WriteString(fmt.Sprintf("Generating Report for: %s\n\n", osr.HiddenService))
 	const indent = "         "
 
 	for _, risk := range osr.Risks {
@@ -73,9 +73,9 @@ func (osr *SimpleReport) Format(width int) (string, error) {
 		buffer.WriteString("\n")
 
 	}
-	if len(osr.Risks) == 0 {
-		buffer.WriteString("No risks were found.\n")
-	}
+	// if len(osr.Risks) == 0 {
+	// 	buffer.WriteString("No risks were found.\n")
+	// }
 	return buffer.String(), nil
 }
 

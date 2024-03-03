@@ -1,14 +1,10 @@
 package onionscan
 
 import (
-	"fmt"
-	"log"
 	"os"
-	"strings"
 	"sync"
 
 	"github.com/VyshnaviMN/onionscan/report"
-	"github.com/VyshnaviMN/onionscan/utils"
 )
 
 // Pipeline is a construct for managing a set of crawls, analysis and output sinks
@@ -35,16 +31,16 @@ func (p *Pipeline) AddStep(step PipelineStep) {
 
 // Execute takes a hidden service address and puts it through the configured
 // pipeline.
-func (p *Pipeline) Execute(hiddenService string, hiddenServiceID string) {
+func (p *Pipeline) Execute(onionsToScan map[string]string) {
 
 	// Remove Extra Prefix
-	hiddenService = utils.WithoutProtocol(hiddenService)
+	// hiddenService = utils.WithoutProtocol(hiddenService)
 
-	if strings.HasSuffix(hiddenService, "/") {
-		hiddenService = hiddenService[0 : len(hiddenService)-1]
-	}
+	// if strings.HasSuffix(hiddenService, "/") {
+	// 	hiddenService = hiddenService[0 : len(hiddenService)-1]
+	// }
 
-	r := report.NewOnionScanReport(hiddenService, hiddenServiceID)
+	r := report.NewOnionScanReport(onionsToScan)
 
 	var wg sync.WaitGroup
 
@@ -53,22 +49,22 @@ func (p *Pipeline) Execute(hiddenService string, hiddenServiceID string) {
 
 	go func() {
 		defer wg.Done()
-		if utils.IsOnion(hiddenService) {
+		// if utils.IsOnion(hiddenService) {
 
-			for _, step := range p.Steps {
-				err := step.Do(r)
-				if err != nil {
-					break
-				}
+		for _, step := range p.Steps {
+			err := step.Do(r)
+			if err != nil {
+				break
 			}
-
-			// Output Report
-			p.Reports <- r
-
-		} else {
-			err := fmt.Sprintf("Unknown hidden service type: %v", hiddenService)
-			log.Fatal(err)
 		}
+
+		// Output Report
+		p.Reports <- r
+
+		// } else {
+		// 	err := fmt.Sprintf("Unknown hidden service type: %v", hiddenService)
+		// 	log.Fatal(err)
+		// }
 
 	}()
 

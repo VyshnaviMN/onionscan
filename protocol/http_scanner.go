@@ -2,12 +2,13 @@ package protocol
 
 import (
 	"fmt"
+
 	"github.com/VyshnaviMN/onionscan/config"
 	"github.com/VyshnaviMN/onionscan/report"
 
-	"github.com/VyshnaviMN/onionscan/spider"
-	"github.com/VyshnaviMN/onionscan/utils"
 	"net/http"
+
+	"github.com/VyshnaviMN/onionscan/utils"
 )
 
 type HTTPProtocolScanner struct {
@@ -28,7 +29,7 @@ func (hps *HTTPProtocolScanner) ScanProtocol(hiddenService string, osc *config.O
 	} else {
 		osc.LogInfo("Found potential service on http(80)\n")
 		report.WebDetected = true
-		wps := new(spider.OnionSpider)
-		wps.Crawl(report.HiddenService, osc, report)
+		// wps := new(spider.OnionSpider)
+		// wps.Crawl(report.HiddenService, osc, report)
 	}
 }

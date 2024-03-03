@@ -2,10 +2,11 @@ package steps
 
 import (
 	"fmt"
-	"github.com/VyshnaviMN/onionscan/report"
 	"log"
 	"os"
 	"time"
+
+	"github.com/VyshnaviMN/onionscan/report"
 )
 
 // SimpleReportWriter is a PipelineStep which outputs a human friendly summary
@@ -37,7 +38,7 @@ func (srw *SimpleReportWriter) Do(r *report.OnionScanReport) error {
 	}
 
 	if len(srw.reportFile) > 0 {
-		reportFile := r.HiddenService + "." + srw.reportFile
+		reportFile :=  "onionscan." + srw.reportFile
 		f, err := os.Create(reportFile)
 
 		for err != nil {
