@@ -32,7 +32,7 @@ func main() {
 	directoryDepth := flag.Int("depth", 100, "depth of directory scan recursion (default: 100)")
 	fingerprint := flag.Bool("fingerprint", true, "true disables some deeper scans e.g. directory probing with the aim of just getting a fingerprint of the service.")
 	list := flag.String("list", "", "If provided OnionScan will attempt to read from the given list, rather than the provided hidden service")
-	timeout := flag.Int("timeout", 120, "read timeout for connecting to onion services")
+	timeout := flag.Int("timeout", 180, "read timeout for connecting to onion services (in seconds)")
 	batch := flag.Int("batch", 10, "number of onions to scan concurrently")
 	dbdir := flag.String("dbdir", "./onionscandb", "The directory where the crawl database will be stored")
 	crawlconfigdir := flag.String("crawlconfigdir", "", "A directory where crawl configurations are stored")

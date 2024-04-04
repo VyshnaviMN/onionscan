@@ -10,6 +10,7 @@ import (
 
 func GetNetworkConnection(onionService string, port int, proxyAddress string, timeout time.Duration) (net.Conn, error) {
 	portNumber := strconv.Itoa(port)
+
 	torDialer, err := proxy.SOCKS5("tcp", proxyAddress, nil, proxy.Direct)
 	if err != nil {
 		return nil, err
@@ -20,6 +21,6 @@ func GetNetworkConnection(onionService string, port int, proxyAddress string, ti
 		return nil, err
 	}
 
-	conn.SetDeadline(time.Now().Add(timeout))
+	conn.SetDeadline(time.Now().Add(timeout * time.Second))
 	return conn, err
 }

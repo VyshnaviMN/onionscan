@@ -10,11 +10,11 @@ import (
 )
 
 const (
-	username = ""
-	password = ""
-	host     = ""
-	port     = ""
-	dbname   = ""
+	username = "vyshnavi"
+	password = "JLTQa4Ro7WKz"
+	host     = "ganymede"
+	port     = "33067"
+	dbname   = "vyshnavi"
 )
 
 func InitDB() (*sql.DB, error) {
@@ -132,3 +132,8 @@ func unionPorts(existingPorts, newPorts string) string {
 
     return strings.Join(result, ",")
 }
+
+// TODO: function for merging port range
+
+// TODO: function for handling status when open port detected for a status = "temporarily down"
+

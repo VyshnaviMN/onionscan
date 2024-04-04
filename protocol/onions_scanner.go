@@ -10,10 +10,13 @@ import (
 type OnionsScanner struct {
 }
 
+var rescanQueue = NewOnionQueue()
+
 func (sps *OnionsScanner) ScanProtocol(osc *config.OnionScanConfig, report *report.OnionScanReport) {
 	var wg sync.WaitGroup
-	maxOnions := 30
-	if len(report.OnionsToScan) < 30 {
+	
+	maxOnions := 1
+	if len(report.OnionsToScan) < maxOnions {
 		maxOnions = len(report.OnionsToScan)
 	}
 	semaphore := make(chan struct{}, maxOnions)	
@@ -28,11 +31,13 @@ func (sps *OnionsScanner) ScanProtocol(osc *config.OnionScanConfig, report *repo
 
 			// Create an instance of the protocol.OtherPortsScanner
 			otherPorts := new(OtherPortsScanner)
-			otherPorts.ScanProtocol(onion, onionId, osc, report)
+			otherPorts.ScanProtocol(onion, onionId, osc, report, rescanQueue)
 
 		}(onion, onionId)
 	}
 
 	wg.Wait()
 	close(semaphore)
+
+	rescanQueue.wg.Wait()
 }
