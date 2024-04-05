@@ -64,8 +64,7 @@ func (oq *OnionQueue) processQueue(onion string, onionID string, osc *config.Oni
 
 	for _, interval := range intervals {
 		openPorts := ""
-		time.Sleep(time.Duration(interval) * time.Minute)
-		status, _ := getStatus(hiddenService, 80, osc.TorProxyAddress, osc.Timeout)
+		status := getStatus(hiddenService, 80, osc.TorProxyAddress, osc.Timeout)
 		if status == "scanned" {
 			openPorts = "80"
 		}
@@ -83,6 +82,7 @@ func (oq *OnionQueue) processQueue(onion string, onionID string, osc *config.Oni
 		
 		intervalWG.Done()
 		db.Close()
+		time.Sleep(time.Duration(interval) * time.Minute)
 	}
 	intervalWG.Wait()
 	oq.removeOnion(onion)
@@ -93,4 +93,3 @@ func (oq *OnionQueue) removeOnion(onion string) {
 	delete(oq.queue, onion)
 	oq.mux.Unlock()
 }
-

@@ -15,7 +15,7 @@ var rescanQueue = NewOnionQueue()
 func (sps *OnionsScanner) ScanProtocol(osc *config.OnionScanConfig, report *report.OnionScanReport) {
 	var wg sync.WaitGroup
 	
-	maxOnions := 1
+	maxOnions := 50
 	if len(report.OnionsToScan) < maxOnions {
 		maxOnions = len(report.OnionsToScan)
 	}
