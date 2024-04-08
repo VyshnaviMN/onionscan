@@ -14,14 +14,14 @@ import (
 type OnionQueue struct {
 	queue map[string]struct{}
 	mux   sync.Mutex
-	wg    sync.WaitGroup 
+	wg    sync.WaitGroup
 }
 
 // var intervals = []int{5, 10, 20, 30, 40, 60, 120, 240, 480, 720, 960}
 
 func getIntervals() []int{
 	var intervals = []int{1, 2}
-	var limit = 5760
+	var limit = 1440
 
 	for i := 5; i <= limit; i += 5 {
 		intervals = append(intervals, 5)
@@ -54,11 +54,11 @@ func (oq *OnionQueue) AddToQueue(onion string, onionID string, osc *config.Onion
 }
 
 func (oq *OnionQueue) processQueue(onion string, onionID string, osc *config.OnionScanConfig, report *report.OnionScanReport) {
-	
+
 	defer oq.wg.Done()
-	
+
 	hiddenService := utils.WithoutProtocol(onion)
-	
+
 	intervalWG := sync.WaitGroup{}
     intervalWG.Add(len(intervals))
 
@@ -68,18 +68,18 @@ func (oq *OnionQueue) processQueue(onion string, onionID string, osc *config.Oni
 		if status == "scanned" {
 			openPorts = "80"
 		}
-		
+
 		db, err := resultdb.InitDB()
-		
+
 		if err != nil {
 			fmt.Printf("Error initializing database: %v\n", err)
 			return
 		}
-		
+
 		if err := resultdb.InsertOrUpdate(db, onionID, onion, time.Now(), openPorts, "80-80", time.Now(), status); err != nil {
 			fmt.Printf("Error inserting/updating to database: %v\n", err)
 		}
-		
+
 		intervalWG.Done()
 		db.Close()
 		time.Sleep(time.Duration(interval) * time.Minute)
