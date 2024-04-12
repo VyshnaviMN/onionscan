@@ -65,7 +65,7 @@ func (oq *OnionQueue) processQueue(onion string, onionID string, osc *config.Oni
 	for _, interval := range intervals {
 		openPorts := ""
 		time.Sleep(time.Duration(interval) * time.Minute)
-		status, _ := getStatus(hiddenService, 80, osc.TorProxyAddress, osc.Timeout)
+		status, _, _ := getStatus(hiddenService, 80, osc.TorProxyAddress, osc.Timeout)
 		if status == "scanned" {
 			openPorts = "80"
 		}

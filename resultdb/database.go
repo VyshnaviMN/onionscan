@@ -10,11 +10,11 @@ import (
 )
 
 const (
-	username = "vyshnavi"
-	password = "JLTQa4Ro7WKz"
-	host     = "ganymede"
-	port     = "33067"
-	dbname   = "vyshnavi"
+	username = ""
+	password = ""
+	host     = ""
+	port     = ""
+	dbname   = ""
 )
 
 func InitDB() (*sql.DB, error) {
@@ -44,6 +44,13 @@ func insertData(conn *sql.DB, query string, args ...interface{}) error {
 		return fmt.Errorf("error inserting into MySQL: %v", err)
 	}
 	return nil
+}
+
+func InsertResponseTime(conn *sql.DB, id string, onion string, torProxyAddress string, scannedAt time.Time, status string, timeDiff float64, errMessage string) error {
+	return insertData(conn,
+		"INSERT INTO response_time (OnionID, OnionURL, TorProxyAddress, ScannedAt, Status, Time, ErrorMessage) VALUES (?, ?, ?, ?, ?, ?, ?)",
+		id, onion, torProxyAddress, status, timeDiff, errMessage,
+	)
 }
 
 func InsertScanResult(conn *sql.DB, id string, onion string, scannedAt time.Time, result string, portRange string, lastScannedAt time.Time, status string) error {

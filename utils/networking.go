@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"context"
+	"log"
 	"net"
 	"strconv"
 	"time"
@@ -16,11 +18,20 @@ func GetNetworkConnection(onionService string, port int, proxyAddress string, ti
 		return nil, err
 	}
 
-	conn, err := torDialer.Dial("tcp", onionService+":"+portNumber)
+	ctx, cancel := context.WithTimeout(context.Background(), 180*time.Second)
+	defer cancel()
+
+	start := time.Now()
+	conn, err := torDialer.(proxy.ContextDialer).DialContext(ctx, "tcp", onionService+":"+portNumber)
+	// conn, err := torDialer.Dial("tcp", onionService+":"+portNumber)
+	end := time.Now()
+
+	log.Printf("Time difference just for dialing tcp connection is: %s", end.Sub(start))
+
 	if err != nil {
 		return nil, err
 	}
 
-	conn.SetDeadline(time.Now().Add(timeout * time.Second))
+	// conn.SetDeadline(time.Now().Add(timeout * time.Second))
 	return conn, err
 }
