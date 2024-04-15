@@ -2,6 +2,7 @@ package protocol
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
@@ -32,7 +33,7 @@ type OtherPortsScanner struct {
 func getStatus(onion string, port int, proxyAddress string, timeout time.Duration) (string, float64, string) {
 
 	status := ""
-	retries := 1
+	retries := 2
 	var err1 string
 	var start time.Time
 	var end time.Time
@@ -65,19 +66,20 @@ func getStatus(onion string, port int, proxyAddress string, timeout time.Duratio
 }
 
 func (sps *OtherPortsScanner) ScanProtocol(onion string, onionId string, osc *config.OnionScanConfig, report *report.OnionScanReport, rescanQueue *OnionQueue) {
-	// openPorts := ""
+	openPorts := ""
 	status := ""
+	portRange := "Default"
 	err1 := ""
 	var timeDiff float64
 	// portRange := "Default"
 	checkPort := 80
-	// maxConcurrent := 1
-	// if len(osc.PortRange) == 2 {
-	// 	portRange = strings.Join(osc.PortRange, "-")
-	// 	startPort, _ := strconv.Atoi(osc.PortRange[0])
-	// 	endPort, _ := strconv.Atoi(osc.PortRange[1])
-	// 	defaultPorts = makeRange(startPort, endPort)
-	// }
+	// maxConcurrent := 200
+	if len(osc.PortRange) == 2 {
+		portRange = strings.Join(osc.PortRange, "-")
+		// startPort, _ := strconv.Atoi(osc.PortRange[0])
+		// endPort, _ := strconv.Atoi(osc.PortRange[1])
+		// defaultPorts = makeRange(startPort, endPort)
+	}
 	hiddenService := utils.WithoutProtocol(onion)
 
 	// var wg sync.WaitGroup
@@ -86,6 +88,7 @@ func (sps *OtherPortsScanner) ScanProtocol(onion string, onionId string, osc *co
 	// if len(defaultPorts) < maxConcurrent {
 	// 	maxConcurrent = len(defaultPorts)
 	// }
+
 	// semaphore := make(chan struct{}, maxConcurrent)
 
 	if strings.Contains(onion, "https"){
@@ -95,9 +98,13 @@ func (sps *OtherPortsScanner) ScanProtocol(onion string, onionId string, osc *co
 	
 	status, timeDiff, err1 = getStatus(hiddenService, checkPort, osc.TorProxyAddress, osc.Timeout)
 
-	// if status == "temporarily_down" {
-	// 	rescanQueue.AddToQueue(onion, onionId, osc, report)
-	// }
+	if status == "temporarily_down" {
+		rescanQueue.AddToQueue(onion, onionId, osc, report)
+	}
+
+	if status == "scanned" {
+		openPorts = strconv.Itoa(checkPort)
+	}
 	
 	// if status == "scanned" || status == "connection_refused_but_scanned" {
 		
@@ -137,7 +144,12 @@ func (sps *OtherPortsScanner) ScanProtocol(onion string, onionId string, osc *co
 		return
 	}
 	defer db.Close()
-	if err := resultdb.InsertResponseTime(db, onionId, onion, osc.TorProxyAddress, time.Now(), status, timeDiff, err1); err != nil {
+
+	if err := resultdb.InsertOrUpdate(db, onionId, onion, time.Now(), openPorts, portRange, time.Now(), status); err != nil {
         fmt.Printf("Error inserting/updating to database: %v\n", err)
+    }
+
+	if err := resultdb.InsertResponseTime(db, onionId, onion, osc.TorProxyAddress, time.Now(), status, timeDiff, err1); err != nil {
+        fmt.Printf("Error inserting/updating to response time table of the database: %v\n", err)
     }
 }

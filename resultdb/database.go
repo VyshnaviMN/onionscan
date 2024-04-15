@@ -49,7 +49,7 @@ func insertData(conn *sql.DB, query string, args ...interface{}) error {
 func InsertResponseTime(conn *sql.DB, id string, onion string, torProxyAddress string, scannedAt time.Time, status string, timeDiff float64, errMessage string) error {
 	return insertData(conn,
 		"INSERT INTO response_time (OnionID, OnionURL, TorProxyAddress, ScannedAt, Status, Time, ErrorMessage) VALUES (?, ?, ?, ?, ?, ?, ?)",
-		id, onion, torProxyAddress, status, timeDiff, errMessage,
+		id, onion, torProxyAddress, scannedAt, status, timeDiff, errMessage,
 	)
 }
 
