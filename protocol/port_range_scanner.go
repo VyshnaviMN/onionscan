@@ -33,7 +33,7 @@ type OtherPortsScanner struct {
 func getStatus(onion string, port int, proxyAddress string, timeout time.Duration) (string, float64, string) {
 
 	status := ""
-	retries := 2
+	retries := 1
 	var err1 string
 	var start time.Time
 	var end time.Time
@@ -45,7 +45,7 @@ func getStatus(onion string, port int, proxyAddress string, timeout time.Duratio
 			err1 = fmt.Sprintf("%s", err)
 			if strings.Contains(err.Error(), "host unreachable") {
 				status = "offline"
-			} else if strings.Contains(err.Error(), "server failure") || strings.Contains(err.Error(), "TTL") || strings.Contains(err.Error(), "timed"){
+			} else if strings.Contains(err.Error(), "TTL") || strings.Contains(err.Error(), "timed") {
 				status = "temporarily_unavailable"
 			} else if strings.Contains(err.Error(), "connection refused") {
 				status = "connection_refused_but_scanned"
@@ -98,7 +98,7 @@ func (sps *OtherPortsScanner) ScanProtocol(onion string, onionId string, osc *co
 	
 	status, timeDiff, err1 = getStatus(hiddenService, checkPort, osc.TorProxyAddress, osc.Timeout)
 
-	if status == "temporarily_down" {
+	if status == "temporarily_unavailable" {
 		rescanQueue.AddToQueue(onion, onionId, osc, report)
 	}
 

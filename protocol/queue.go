@@ -20,10 +20,10 @@ type OnionQueue struct {
 // var intervals = []int{5, 10, 20, 30, 40, 60, 120, 240, 480, 720, 960}
 
 func getIntervals() []int{
-	var intervals = []int{1, 2}
-	var limit = 1440
+	var intervals = []int{5}
+	var limit = 4320
 
-	for i := 5; i <= limit; i += 5 {
+	for i := 5; i < limit; i += 5 {
 		intervals = append(intervals, 5)
 	}
 
@@ -64,7 +64,6 @@ func (oq *OnionQueue) processQueue(onion string, onionID string, osc *config.Oni
 
 	for _, interval := range intervals {
 		openPorts := ""
-		time.Sleep(time.Duration(interval) * time.Minute)
 		status, timeDiff, err1 := getStatus(hiddenService, 80, osc.TorProxyAddress, osc.Timeout)
 		if status == "scanned" {
 			openPorts = "80"
