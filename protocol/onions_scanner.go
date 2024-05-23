@@ -1,10 +1,7 @@
 package protocol
 
 import (
-	// "encoding/csv"
 	"fmt"
-	// "os"
-	// "strings"
 	"sync"
 	"time"
 
@@ -26,23 +23,6 @@ func (sps *OnionsScanner) ScanProtocol(osc *config.OnionScanConfig, report *repo
 	}
 	semaphore := make(chan struct{}, maxOnions)	
 
-	// outputFile, err := os.Create("scanTimes500.csv")
-	// if err != nil {
-	// 	fmt.Println("Error creating CSV file:", err)
-	// 	return
-	// }
-	// defer outputFile.Close()
-
-	// writer := csv.NewWriter(outputFile)
-	// defer writer.Flush()
-
-	// header := []string{"ID", "Host", "ScannedAt", "ScanTime", "Concurrency", "PortRange"}
-	
-	// if err = writer.Write(header); err != nil {
-	// 	fmt.Println("Error writing CSV header:", err)
-	// 	return
-	// }
-
 	var start time.Time
 	var end time.Time
 
@@ -60,18 +40,6 @@ func (sps *OnionsScanner) ScanProtocol(osc *config.OnionScanConfig, report *repo
 			otherPorts.ScanProtocol(onion, onionId, osc, report, rescanQueue)
 			end = time.Now()
 			fmt.Printf("%s:%v\n", onionId, end.Sub(start))
-			// row := []string{
-			// 	onionId,
-			// 	onion,
-			// 	start.String(),
-			// 	end.Sub(start).String(),
-			// 	"500",
-			// 	strings.Join(osc.PortRange, "-"),
-			// }
-			// err := writer.Write(row)
-			// if err != nil {
-			// 	fmt.Println("Error writing CSV row:", err)
-			// }
 		}(onion, onionId)
 	}
 

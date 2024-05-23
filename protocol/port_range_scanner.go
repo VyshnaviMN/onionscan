@@ -11,8 +11,6 @@ import (
 	"github.com/VyshnaviMN/onionscan/config"
 	"github.com/VyshnaviMN/onionscan/report"
 	"github.com/VyshnaviMN/onionscan/resultdb"
-
-	// "github.com/VyshnaviMN/onionscan/resultdb"
 	"github.com/VyshnaviMN/onionscan/utils"
 )
 
