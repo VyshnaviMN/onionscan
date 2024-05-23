@@ -11,6 +11,8 @@ import (
 	"github.com/VyshnaviMN/onionscan/config"
 	"github.com/VyshnaviMN/onionscan/report"
 	"github.com/VyshnaviMN/onionscan/resultdb"
+
+	// "github.com/VyshnaviMN/onionscan/resultdb"
 	"github.com/VyshnaviMN/onionscan/utils"
 )
 
@@ -35,15 +37,15 @@ func makeRange(start, end int) []int {
 func getStatus(onion string, port int, proxyAddress string, timeout time.Duration) string {
 
 	status := ""
-	retries := 2
+	retries := 1
 
 	for retry := 1; retry <= retries; retry++ {
 		_, err := utils.GetNetworkConnection(onion, port, proxyAddress, timeout)
 		if err != nil {
 			if strings.Contains(err.Error(), "host unreachable") {
 				status = "offline"
-			} else if strings.Contains(err.Error(), "server failure") || strings.Contains(err.Error(), "TTL") || strings.Contains(err.Error(), "timed"){
-				status = "temporarily_down"
+			} else if strings.Contains(err.Error(), "TTL") || strings.Contains(err.Error(), "timed"){
+				status = "temporarily_unavailable"
 			} else if strings.Contains(err.Error(), "connection refused") {
 				status = "connection_refused_but_scanned"
 			} else {
@@ -51,9 +53,9 @@ func getStatus(onion string, port int, proxyAddress string, timeout time.Duratio
 				status = strings.Join(s[len(s)-2:], "_")
 			}
 		} else {
-			status = "scanned"
+			status = "online"
 		}
-		if status != "temporarily_down" && status != "" {
+		if status != "temporarily_unavailable" && status != "" {
 			break
 		}
 		time.Sleep(1 * time.Second)
@@ -67,7 +69,7 @@ func (sps *OtherPortsScanner) ScanProtocol(onion string, onionId string, osc *co
 	status := ""
 	portRange := "Default"
 	checkPort := 80
-	maxConcurrent := 200
+	maxConcurrent := 500
 	if len(osc.PortRange) == 2 {
 		portRange = strings.Join(osc.PortRange, "-")
 		startPort, _ := strconv.Atoi(osc.PortRange[0])
@@ -92,11 +94,11 @@ func (sps *OtherPortsScanner) ScanProtocol(onion string, onionId string, osc *co
 	
 	status = getStatus(hiddenService, checkPort, osc.TorProxyAddress, osc.Timeout)
 
-	if status == "temporarily_down" {
-		rescanQueue.AddToQueue(onion, onionId, osc, report)
-	}
+	// if status == "temporarily_unavailable" {
+	// 	rescanQueue.AddToQueue(onion, onionId, osc, report)
+	// }
 	
-	if status == "scanned" || status == "connection_refused_but_scanned" {
+	if status == "online" || status == "connection_refused_but_scanned" {
 		
 		for _, port := range defaultPorts {
 			wg.Add(1)
@@ -136,6 +138,6 @@ func (sps *OtherPortsScanner) ScanProtocol(onion string, onionId string, osc *co
 	defer db.Close()
 
 	if err := resultdb.InsertOrUpdate(db, onionId, onion, time.Now(), openPorts, portRange, time.Now(), status); err != nil {
-        fmt.Printf("Error inserting/updating to database: %v\n", err)
-    }
+		fmt.Printf("Error inserting/updating to database: %v\n", err)
+	}
 }
